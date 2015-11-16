@@ -2,9 +2,12 @@
 Enabling Solum in DevStack
 ==========================
 
-1. Install Docker, to be used by our build service::
+1. Install Docker version 1.7.0 using following steps (Solum has been tested with this version of Docker):
 
-    http://docs.docker.io/installation/
+    echo deb http://get.docker.com/ubuntu docker main | sudo tee /etc/apt/sources.list.d/docker.list
+    sudo apt-key adv --keyserver pgp.mit.edu --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9
+    sudo apt-get update 
+    sudo apt-get install -y lxc-docker-1.7.0
 
 2. Download DevStack::
 
@@ -13,9 +16,15 @@ Enabling Solum in DevStack
 
 3. Add this repo as an external repository::
 
-    > cat local.conf
+    cat > local.conf <<END
     [[local|localrc]]
     enable_plugin solum git://git.openstack.org/openstack/solum
+    ADMIN_PASSWORD=password
+    MYSQL_PASSWORD=password
+    RABBIT_PASSWORD=password
+    SERVICE_PASSWORD=password
+    SERVICE_TOKEN=password
+    END
 
 4. Run ``stack.sh``.
 

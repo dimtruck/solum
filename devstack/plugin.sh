@@ -17,7 +17,7 @@
 
 # Save trace setting
 XTRACE=$(set +o | grep xtrace)
-set +o xtrace
+set -o xtrace
 
 # Defaults
 # --------
@@ -136,21 +136,21 @@ function configure_solum() {
 
     # configure AllHostsFilter in /etc/nova/nova.conf
     iniset $NOVA_CONF_DIR/$NOVA_CONF_FILE DEFAULT scheduler_default_filters AllHostsFilter
-    
+
     # Integrate nova-docker with Devstack
 
-    git clone $NOVADOCKER_REPO $NOVADOCKER_BRANCH $NOVADOCKER_PROJ_DIR
-    cp -R $NOVADOCKER_PROJ_DIR/contrib/devstack/lib/* ${DEVSTACK_DIR}/lib/
-    cp $NOVADOCKER_PROJ_DIR/contrib/devstack/extras.d/* ${DEVSTACK_DIR}/extras.d/
+    #git_clone $NOVADOCKER_REPO $NOVADOCKER_PROJ_DIR $NOVADOCKER_BRANCH
+    #cp -R $NOVADOCKER_PROJ_DIR/contrib/devstack/lib/* ${DEVSTACK_DIR}/lib/
+    #cp $NOVADOCKER_PROJ_DIR/contrib/devstack/extras.d/* ${DEVSTACK_DIR}/extras.d/
 
-    if [ ! -d $NOVA_CONF_DIR/rootwrap.d ] ; then
-        mkdir -p $NOVA_CONF_DIR/rootwrap.d
-    fi
+    #if [ ! -d $NOVA_CONF_DIR/rootwrap.d ] ; then
+    #    mkdir -p $NOVA_CONF_DIR/rootwrap.d
+    #fi
 
-    cp $NOVADOCKER_PROJ_DIR/$NOVA_CONF_DIR/rootwrap.d/docker.filters $NOVA_CONF_DIR/rootwrap.d/docker.filters
+    #cp $NOVADOCKER_PROJ_DIR/$NOVA_CONF_DIR/rootwrap.d/docker.filters $NOVA_CONF_DIR/rootwrap.d/docker.filters
 
     # configure Virtdriver in /etc/nova/nova.conf
-    iniset $NOVA_CONF_DIR/$NOVA_CONF_FILE DEFAULT compute_driver novadocker.virt.docker.driver.DockerDriver
+    # iniset $NOVA_CONF_DIR/$NOVA_CONF_FILE DEFAULT compute_driver novadocker.virt.docker.driver.DockerDriver
 
 }
 
@@ -385,7 +385,7 @@ solum_install_core_os() {
 # Main dispatcher
 #----------------
 
-if is_service_enabled solum; then
+if is_service_enabled solum-api solum-conductor solum-deployer solum-worker; then
     echo "Checking for Docker"
     if [ ! -f /usr/bin/docker ] ; then
         lsb_release -a | grep -i ubuntu
