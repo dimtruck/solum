@@ -16,7 +16,7 @@
 from tempest_lib import exceptions as tempest_exceptions
 import yaml
 
-from functionaltests.api import base
+from solum.tests.functional.api import base
 
 sample_data = {"version": "1",
                "name": "test_plan",

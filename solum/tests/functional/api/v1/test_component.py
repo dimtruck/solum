@@ -18,7 +18,7 @@ import json
 
 from tempest_lib import exceptions as tempest_exceptions
 
-from functionaltests.api import base
+from solum.tests.functional.api import base
 
 sample_data = {'name': 'test_component',
                'description': 'desc'}

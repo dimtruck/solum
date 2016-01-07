@@ -14,39 +14,56 @@
 
 # This script is executed inside post_test_hook function in devstack gate.
 
-# Install packages from test-requirements.txt
-sudo pip install -r /opt/stack/new/solum/test-requirements.txt
+source $BASE/new/devstack/functions
+echo "TEMPEST_SERVICES+=,solum" >> $localrc_path
+pushd $BASE/new/tempest
+sudo chown -R jenkins:stack $BASE/new/tempest
 
-sudo pip uninstall tempest-lib
+# show tempest config with solum
+cat etc/tempest.conf
 
-sudo pip install -U tempest-lib
+# Set up concurrency and test regex
+export SOLUM_TEMPEST_CONCURRENCY=${SOLUM_TEMPEST_CONCURRENCY:-1}
+export SOLUM_TESTS=${SOLUM_TESTS:-'solum.tests.functional.api'}
 
-sudo pip freeze
+API_RESPONDING_TIMEOUT=20
+SERVICES=("solum-api" "solum-worker" "solum-conductor" "solum-deployer")
+SOLUM_CONFIG="/etc/solum/solum.conf"
+declare -A CONFIG_SECTIONS=(["api"]=9777)
 
-# Generate tempest.conf file
-TEMPEST_BASE=/opt/stack/new/tempest/
-cd $TEMPEST_BASE
-sudo tox -egenconfig
-sudo mkdir -p /etc/tempest
-sudo cp $TEMPEST_BASE/etc/tempest.conf.sample /etc/tempest/tempest.conf
+function check_api {
+    local host=$1
+    local port=$2
+    if ! timeout ${API_RESPONDING_TIMEOUT} sh -c "while ! curl -s -o /dev/null http://$host:$port ; do sleep 1; done"; then
+        echo "Failed to connect to API $host:$port within ${API_RESPONDING_TIMEOUT} seconds"
+        exit 1
+    fi
+}
 
-# Set test parameters
-sudo sed -i s'/#username = <None>/username = solum_user_a/'g /etc/tempest/tempest.conf
-sudo sed -i s'/#tenant_name = <None>/tenant_name = solum_tenant_a/'g /etc/tempest/tempest.conf
-sudo sed -i s'/#password = <None>/password = solum/'g /etc/tempest/tempest.conf
-sudo sed -i s'/#auth_version = <None>/auth_version = v2/'g /etc/tempest/tempest.conf
-sudo sed -i s'/#admin_domain_name = <None>/admin_domain_name = Default/'g /etc/tempest/tempest.conf
-sudo sed -i s'/#admin_tenant_id = <None>/admin_tenant_id = 22c3991d53eb42cbaff28428b90760c2/'g /etc/tempest/tempest.conf
-sudo sed -i s'/#admin_tenant_name = <None>/admin_tenant_name = admin/'g /etc/tempest/tempest.conf
-sudo sed -i s'/#admin_password = <None>/admin_password = solum/'g /etc/tempest/tempest.conf
-sudo sed -i s'/#admin_username = <None>/admin_username = admin/'g /etc/tempest/tempest.conf
-sudo sed -i s'/#alt_tenant_name = <None>/alt_tenant_name = alt_demo/'g /etc/tempest/tempest.conf
-sudo sed -i s'/#alt_password = <None>/alt_password = solum/'g /etc/tempest/tempest.conf
-sudo sed -i s'/#alt_username = <None>/alt_username = alt_demo/'g /etc/tempest/tempest.conf
-sudo sed -i s'/#uri_v3 = <None>/uri_v3 = http\:\/\/127.0.0.1\:5000\/v3/'g /etc/tempest/tempest.conf
-sudo sed -i s'/#uri = <None>/uri = http\:\/\/127.0.0.1\:5000\/v2.0\//'g /etc/tempest/tempest.conf
+# Check if solum services are running
+for s in ${SERVICES[*]}
+do
+    if [ ! `pgrep -f $s` ]; then
+        echo "$s is not running"
+        exit 1
+    fi
+done
 
-sudo more /etc/tempest/tempest.conf
+for sec in ${!CONFIG_SECTIONS[*]}
+do
+    pt=${CONFIG_SECTIONS[$sec]}
+    line=$(sed -ne "/^\[$sec\]/,/^\[.*\]/ { /^port[ \t]*=/ p; }" $SOLUM_CONFIG)
+    if [ ! -z "${line#*=}" ]; then
+        pt=${line#*=}
+    fi
+    hst="127.0.0.1"
+    line=$(sed -ne "/^\[$sec\]/,/^\[.*\]/ { /^host[ \t]*=/ p; }" $SOLUM_CONFIG)
+    if [ ! -z "${line#*=}" ]; then
+        hst=${line#*=}
+    fi
 
-cd /opt/stack/new/solum/functionaltests
-sudo ./run_tests.sh
+    check_api $hst $pt
+done
+
+echo "Running tempest solum test suites"
+sudo -H -u jenkins tox -eall-plugin -- $SOLUM_TESTS --concurrency=$SOLUM_TEMPEST_CONCURRENCY

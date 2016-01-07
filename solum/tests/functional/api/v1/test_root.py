@@ -16,7 +16,7 @@
 
 import json
 
-from functionaltests.api import base
+from solum.tests.functional.api import base
 from solum import version
 
 

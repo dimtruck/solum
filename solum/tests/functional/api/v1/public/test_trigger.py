@@ -15,8 +15,8 @@ import json
 import requests
 import yaml
 
-from functionaltests.api import base
-from functionaltests.api.common import apputils
+from solum.tests.functional.api import base
+from solum.tests.functional.api.common import apputils
 
 
 assembly_data = {'name': 'test_assembly',

@@ -1,5 +1,6 @@
-#!/bin/bash
-# Copyright 2014 - Rackspace Hosting
+# -*- coding: utf-8 -*-
+#
+# Copyright 2013 - Noorul Islam K M
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -13,12 +14,15 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-# This script is executed inside gate_hook function in devstack gate.
+import json
 
-export REQUIREMENTS_MODE=soft
-export KEEP_LOCALRC=1
-export DEVSTACK_LOCAL_CONFIG+=$'\n'"SOLUM_PROJ_DIR=/opt/stack/new/solum"
-export PROJECTS="openstack/python-solumclient $PROJECTS"
-export ENABLED_SERVICES=tempest
+from solum.tests.functional.api import base
 
-$BASE/new/devstack-gate/devstack-vm-gate.sh
+
+class TestSensorController(base.TestCase):
+
+    def test_sensors_get_all(self):
+        resp, body = self.client.get('v1/sensors')
+        data = json.loads(body)
+        self.assertEqual(resp.status, 200)
+        self.assertEqual(data, [])

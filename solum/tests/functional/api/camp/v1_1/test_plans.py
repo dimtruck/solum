@@ -18,8 +18,8 @@ import json
 from tempest_lib import exceptions as tempest_exceptions
 import yaml
 
-from functionaltests.api import base
-from functionaltests.api.v1 import test_plan as solum_tests
+from solum.tests.functional.api import base
+from solum.tests.functional.api.v1 import test_plan as solum_tests
 
 
 sample_data = {"camp_version": "CAMP 1.1",

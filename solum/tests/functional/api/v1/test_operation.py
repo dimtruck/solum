@@ -16,13 +16,13 @@
 
 import json
 
-from functionaltests.api import base
+from solum.tests.functional.api import base
 
 
-class TestSensorController(base.TestCase):
+class TestOperationController(base.TestCase):
 
-    def test_sensors_get_all(self):
-        resp, body = self.client.get('v1/sensors')
+    def test_operations_get_all(self):
+        resp, body = self.client.get('v1/operations')
         data = json.loads(body)
         self.assertEqual(resp.status, 200)
         self.assertEqual(data, [])

@@ -12,7 +12,7 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-from functionaltests.api import base
+from solum.tests.functional.api import base
 
 
 class ReleaseVersionTests(base.TestCase):

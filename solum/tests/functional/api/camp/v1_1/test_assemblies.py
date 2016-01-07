@@ -17,8 +17,8 @@ import json
 from tempest_lib import exceptions as tempest_exceptions
 import yaml
 
-from functionaltests.api import base
-from functionaltests.api.camp.v1_1 import test_plans
+from solum.tests.functional.api import base
+from solum.tests.functional.api.camp.v1_1 import test_plans
 
 
 class TestAssembliesController(base.TestCase):
